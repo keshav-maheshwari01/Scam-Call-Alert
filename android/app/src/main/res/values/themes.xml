@@ -1,0 +1,6 @@
+<resources>
+    <style name="Base.Theme.ScamCallAI" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
+
+    <style name="Theme.ScamCallAI" parent="Base.Theme.ScamCallAI" />
+</resources>

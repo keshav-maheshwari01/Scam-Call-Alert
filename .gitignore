@@ -1,0 +1,18 @@
+# Python
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+
+# Runtime audio (uploads are processed in temp files and deleted)
+backend/temp.*
+*.tmp
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
