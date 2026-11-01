@@ -19,6 +19,7 @@ critical_patterns = [
 
     # Identity theft
     r"(?:aadhaar|aadhar|pan|passport)\s*(?:number|no|card)\s*(?:batao|share|send|dijiye|verify|confirm)",
+    r"(?:share|send|give|batao|dijiye)\s*(?:your|apna)?\s*(?:aadhaar|aadhar|pan)\s*(?:number|no|card)?",  # 'share your Aadhaar number'
     r"(?:confirm|verify|validate)\s+(?:social\s+security|ssn|aadhaar|pan)",
 
     # Bank/card details
@@ -29,6 +30,7 @@ critical_patterns = [
     # Lottery / prize scams
     r"(?:lottery|prize|reward|jackpot)\s*(?:jeeta|jeet|won|win|claim|liya)",
     r"(?:congratulations|badhai|mubarak)\s*(?:aap|you|tumhe)?\s*(?:jeete|won|selected|chosen)",
+    r"(?:won|jeete)\s*(?:a|ek)?\s*(?:lottery|prize|reward|jackpot)",  # 'you won a lottery prize'
 
     # KYC fraud
     r"(?:kyc|know\s*your\s*customer)\s*(?:update|verify|complete|pending|expire)",
@@ -163,13 +165,16 @@ def check_text(text: str, caller_number: str = "") -> Dict:
                 suspicious_caller = True
                 break
 
-    # 6. Very short text
+    # 6. Very short text — reduce confidence in very brief snippets
     word_count = len(text_lower.split())
 
-    if word_count < 5:
+    # Brief snippets with only soft signals are unreliable, so scale them down. But a short
+    # sentence that already hit a critical pattern or a red-flag phrase ("share your OTP")
+    # is exactly what we want to catch, so it keeps its full score.
+    if word_count < 5 and not found_patterns and not found_red_flags:
         score = int(score * 0.6)
 
-    # Keep score between 0 and 100
+    # Clamp score to [0, 100] BEFORE computing confidence so confidence is always in [0, 1]
     score = max(0, min(score, 100))
 
     # ══════════════════════════════════════

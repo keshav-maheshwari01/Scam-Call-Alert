@@ -1,63 +1,264 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#121212">
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
 
-    <!-- App title -->
-    <TextView
-        android:text="🛡 ScamCallAI"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="32sp"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Subtitle -->
-    <TextView
-        android:text="Real-time scam call detector"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="#AAAAAA"
-        android:layout_marginBottom="40dp"/>
-
-    <!-- Status box -->
-    <TextView
-        android:id="@+id/statusText"
-        android:text="Checking permissions..."
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textColor="#FFFFFF"
-        android:padding="20dp"
-        android:gravity="center"
-        android:layout_marginBottom="30dp"
-        android:background="#1E1E1E"/>
+        android:orientation="vertical">
 
-    <!-- Info text -->
-    <TextView
-        android:text="App runs in background automatically.\nNo action needed during calls."
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="#888888"
-        android:gravity="center"/>
+        <!-- ════════════════════════════════════════════════
+             TOP HERO — big shield + live status
+             ════════════════════════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="48dp"
+            android:paddingBottom="32dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:background="@color/bg_surface">
 
+            <!-- Animated shield badge -->
+            <FrameLayout
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_marginBottom="20dp">
 
+                <!-- Ring background -->
+                <View
+                    android:id="@+id/shieldRing"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:background="@drawable/shield_ring"/>
 
-    <Button
-        android:id="@+id/testButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🧪 Test Scam Detection"
-        android:textSize="18sp"
-        android:layout_marginTop="30dp"
-        android:backgroundTint="#C62828"/>
+                <!-- Shield emoji centred inside -->
+                <TextView
+                    android:id="@+id/shieldEmoji"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="🛡"
+                    android:textSize="64sp"
+                    android:gravity="center"/>
+            </FrameLayout>
 
-</LinearLayout>
+            <!-- Big one-line status -->
+            <TextView
+                android:id="@+id/heroStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Setting up…"
+                android:textSize="22sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="6dp"/>
+
+            <!-- Subtitle / action hint -->
+            <TextView
+                android:id="@+id/heroSubText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap the button below to get started"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+        <!-- ════════════════════════════════════════════════
+             BODY CONTENT
+             ════════════════════════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- ── Last scan result card ─────────────────── -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/lastScanCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/lastScanIcon"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="✅"
+                        android:textSize="22sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/lastScanLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last scan result"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_hint"
+                            android:layout_marginBottom="2dp"/>
+
+                        <TextView
+                            android:id="@+id/lastScanResult"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Call was safe"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ── Primary CTA: run test ─────────────────── -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/testButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Run Quick Test"
+                android:textSize="17sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                app:backgroundTint="@color/brand_primary"
+                app:cornerRadius="16dp"
+                android:layout_marginBottom="10dp"/>
+
+            <!-- ── Settings access ───────────────────────── -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/settingsButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Fix Permissions"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/divider"
+                app:cornerRadius="16dp"
+                android:layout_marginBottom="28dp"
+                android:visibility="gone"/>
+
+            <!-- ── "How does it work?" section ───────────── -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="How does ScamCallAI protect you?"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Step cards -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp">
+                    <TextView android:layout_width="44dp" android:layout_height="44dp"
+                        android:text="📲" android:textSize="24sp" android:gravity="center"
+                        android:background="@drawable/step_icon_bg" android:layout_marginEnd="14dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Unknown caller rings"
+                            android:textSize="14sp" android:textColor="@color/text_primary" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Any number not saved in your contacts"
+                            android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp">
+                    <TextView android:layout_width="44dp" android:layout_height="44dp"
+                        android:text="🎙" android:textSize="24sp" android:gravity="center"
+                        android:background="@drawable/step_icon_bg" android:layout_marginEnd="14dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="AI listens in 8-second bursts"
+                            android:textSize="14sp" android:textColor="@color/text_primary" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Short clips analysed immediately — no waiting"
+                            android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp">
+                    <TextView android:layout_width="44dp" android:layout_height="44dp"
+                        android:text="🚨" android:textSize="24sp" android:gravity="center"
+                        android:background="@drawable/step_icon_bg_red" android:layout_marginEnd="14dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Instant full-screen alert"
+                            android:textSize="14sp" android:textColor="@color/text_primary" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="If scam patterns detected — you're warned immediately"
+                            android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Privacy note -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔒  Audio is deleted from your device right after each 8-second scan."
+                android:textSize="12sp"
+                android:textColor="@color/text_hint"
+                android:gravity="center"
+                android:layout_marginBottom="32dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

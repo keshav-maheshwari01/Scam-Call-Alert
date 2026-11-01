@@ -13,7 +13,7 @@ object BackendClient {
      * Uploads [file] to the backend and returns the raw JSON response.
      * Blocking - call from a background thread. Throws [IOException] on network / HTTP errors.
      */
-    fun analyze(file: File, mimeType: String, phoneNumber: String? = null): String {
+    fun analyze(file: File, mimeType: String, phoneNumber: String? = null, callId: String? = null): String {
         val conn = URL(BuildConfig.BACKEND_URL).openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "POST"
@@ -29,6 +29,11 @@ object BackendClient {
                     out.write("Content-Disposition: form-data; name=\"number\"\r\n\r\n".toByteArray())
                     out.write("$phoneNumber\r\n".toByteArray())
                 }
+                if (!callId.isNullOrBlank()) {
+                    out.write("--$boundary\r\n".toByteArray())
+                    out.write("Content-Disposition: form-data; name=\"call_id\"\r\n\r\n".toByteArray())
+                    out.write("$callId\r\n".toByteArray())
+                }
                 out.write("--$boundary\r\n".toByteArray())
                 out.write("Content-Disposition: form-data; name=\"test\"; filename=\"${file.name}\"\r\n".toByteArray())
                 out.write("Content-Type: $mimeType\r\n\r\n".toByteArray())
@@ -42,6 +47,14 @@ object BackendClient {
             conn.disconnect()
         }
     }
+
+    /** The backend's verdict: "SAFE", "ALERT" or "SCAM" ("" if the reply can't be read). */
+    fun classification(responseJson: String): String =
+        try {
+            JSONObject(responseJson).optString("classification")
+        } catch (e: Exception) {
+            ""
+        }
 
     /** True if the backend classified the call as SCAM. */
     fun isScam(responseJson: String): Boolean =

@@ -43,10 +43,8 @@ class TestScamDetection(unittest.TestCase):
         r = check_text("otp cvv card number account number " * 20)
         self.assertLessEqual(r["score"], 100)
 
-    @unittest.expectedFailure
-    def test_lottery_scam_known_gap(self):
-        # KNOWN WEAKNESS: scores 35 (SAFE) because the regexes expect e.g. 'lottery prize won'
-        # but not 'won a lottery prize' / 'share your aadhaar number'. Remove the decorator once fixed.
+    def test_lottery_scam_now_detected(self):
+        # Previously a known gap — fixed by adding reverse-order regex patterns.
         r = check_text("Congratulations! You won a lottery prize. Share your Aadhaar number to claim.")
         self.assertIn(r["classification"], ("ALERT", "SCAM"))
 

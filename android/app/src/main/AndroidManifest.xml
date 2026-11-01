@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
     <!-- Android 13+: lets the "monitoring call" notification be shown -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Lets the red scam alert pop up over the call screen / lock screen -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
         android:allowBackup="false"
@@ -38,7 +40,10 @@
         </receiver>
 
         <activity android:name=".ScamAlertActivity"
-            android:exported="false"/>
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.ScamCallAI.Alert"/>
 
         <service android:name=".AudioRecorderService"
             android:exported="false"

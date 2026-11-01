@@ -3,44 +3,49 @@ package com.scamcallai.app
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.telephony.TelephonyManager
 
 class CallReceiver : BroadcastReceiver() {
 
+    companion object {
+        private const val PREFS = "scamcallai_prefs"
+        private const val KEY_PENDING_NUMBER = "pending_number"
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
-
-        // get call state — ringing, answered, ended
         val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
-
-        // get the incoming phone number
-        val incomingNumber = intent.getStringExtra(
-            TelephonyManager.EXTRA_INCOMING_NUMBER
-        ) ?: "unknown"
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
         when (state) {
 
-            // phone is ringing — someone is calling
+            // Phone is ringing — save the number so we have it when the call is answered
             TelephonyManager.EXTRA_STATE_RINGING -> {
+                val incomingNumber = intent.getStringExtra(
+                    TelephonyManager.EXTRA_INCOMING_NUMBER
+                ) ?: "unknown"
+                prefs.edit().putString(KEY_PENDING_NUMBER, incomingNumber).apply()
+            }
 
-                // is this number saved in contacts?
-                if (!isKnownContact(context, incomingNumber)) {
-                    // unknown number — start recording
+            // Call answered — NOW there is actual audio; start recording only for unknown numbers
+            TelephonyManager.EXTRA_STATE_OFFHOOK -> {
+                val number = prefs.getString(KEY_PENDING_NUMBER, null) ?: return
+                if (!isKnownContact(context, number)) {
                     val serviceIntent = Intent(context, AudioRecorderService::class.java)
-                    serviceIntent.putExtra("phoneNumber", incomingNumber)
+                    serviceIntent.putExtra("phoneNumber", number)
                     context.startForegroundService(serviceIntent)
                 }
             }
 
-            // call ended
+            // Call ended — stop recording and clear saved number
             TelephonyManager.EXTRA_STATE_IDLE -> {
-                // stop recording
-                val serviceIntent = Intent(context, AudioRecorderService::class.java)
-                context.stopService(serviceIntent)
+                prefs.edit().remove(KEY_PENDING_NUMBER).apply()
+                context.stopService(Intent(context, AudioRecorderService::class.java))
             }
         }
     }
 
-    // checks if number is saved in your contacts
+    /** Returns true if [number] is saved in the user's contacts. */
     private fun isKnownContact(context: Context, number: String): Boolean {
         val uri = android.net.Uri.withAppendedPath(
             android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI,

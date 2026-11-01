@@ -1,6 +1,20 @@
 <resources>
-    <style name="Base.Theme.ScamCallAI" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Base.Theme.ScamCallAI" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorPrimaryDark">@color/bg_dark</item>
+        <item name="colorAccent">@color/brand_accent</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:statusBarColor">@color/bg_dark</item>
+        <item name="android:navigationBarColor">@color/bg_surface</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
     </style>
 
     <style name="Theme.ScamCallAI" parent="Base.Theme.ScamCallAI" />
+
+    <!-- Full-screen scam alert — keeps the same dark chrome -->
+    <style name="Theme.ScamCallAI.Alert" parent="Base.Theme.ScamCallAI">
+        <item name="android:windowBackground">@color/status_scam_bg</item>
+        <item name="android:statusBarColor">@color/status_scam</item>
+    </style>
 </resources>
