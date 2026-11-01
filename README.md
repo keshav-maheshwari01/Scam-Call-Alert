@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # 🛡 ScamCallAI
 
 Real-time scam-call detection for Android. When an **unknown number** calls, the app records a few seconds of
@@ -90,5 +90,4 @@ commit real call recordings to this repo. The server deletes each upload right a
 
 MIT — see [LICENSE](LICENSE).
 =======
-# Scam-Call-Alert
->>>>>>> 5a3889ed943b6b2c4beaec96a5e8f8e7910aa8b1
+
