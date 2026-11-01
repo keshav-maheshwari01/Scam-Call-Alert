@@ -11,6 +11,26 @@ __pycache__/
 backend/temp.*
 *.tmp
 
+# Call recordings and other audio can contain real people's voices or copyrighted
+# material, so audio is never committed. Only the two bundled demo clips are allowed.
+*.mp3
+*.mpeg
+*.wav
+*.m4a
+*.flac
+*.ogg
+*.aac
+*.amr
+!backend/samples/test_scam.mpeg
+!android/app/src/main/assets/test_scam.mpeg
+
+# App builds and signing keys: never commit these
+*.apk
+*.aab
+*.jks
+*.keystore
+keystore.properties
+
 # Editors / OS
 .vscode/
 .idea/

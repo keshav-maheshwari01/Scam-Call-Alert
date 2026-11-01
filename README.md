@@ -1,93 +1,125 @@
-
 # 🛡 ScamCallAI
 
-Real-time scam-call detection for Android. When an **unknown number** calls, the app records a few seconds of
-audio, sends it to a small Python server that transcribes it with **OpenAI Whisper**, scores the transcript
-with a rule-based detector (English / Hindi / Hinglish), and — if it looks like a scam — takes over the screen with a
-red warning and vibrates the phone.
+Real-time scam-call detection for Android. When someone **who is not in your contacts** calls, the app listens
+to the call in short 8-second chunks and sends each chunk to a small Python server running on your own computer.
+The server turns the speech into text with **OpenAI Whisper** and scores it with a rule-based detector that
+understands **English, Hindi and Hinglish**. If the call starts to look like a scam, the phone shows a full-screen
+red warning and vibrates.
 
-> ⚠️ **Prototype.** Built as a learning project. It works as a proof of concept, but it is not a production
-> security product. See [Limitations](#limitations).
+> ⚠️ **Prototype.** This is a learning project. It works as a proof of concept, but it is not a production
+> security product. Read [Limitations](#limitations) before relying on it.
+
+## Features
+
+- Only analyses calls from numbers that are **not saved in your contacts**.
+- Analyses the call **while it is happening** (8-second chunks, up to about 5 minutes) and keeps a running
+  score for the whole call, so signals spread across the conversation add up.
+- Detects common scam scripts in English, Hindi and Hinglish: OTP / PIN requests, fake KYC and "account will be
+  blocked" threats, arrest threats, lottery prizes, remote-access apps, gift cards and more.
+- Three verdicts: `SAFE`, `ALERT` (suspicious) and `SCAM` (full-screen red alert with vibration).
+- Everything runs on your own machine: local Whisper, no cloud API, no API keys.
+- A **Run Quick Test** button in the app checks the whole pipeline with a bundled sample clip.
 
 ## How it works
 
 ```
- Incoming call (number not in contacts)
-        │
-        ▼
- Android app  ──(10 s WAV over HTTP)──►  Flask server ──► Whisper (speech → English text)
-        ▲                                                        │
-        │                                                        ▼
-  Red alert screen + vibration  ◄──── JSON verdict ◄──── Rule-based scorer (textcheck.py)
+ Call from a number not in your contacts
+            │   CallReceiver (listens for phone-state changes)
+            ▼
+ AudioRecorderService ──every 8 s──► BackendClient ──HTTP POST──► Flask server (backend/app.py)
+ (foreground service, microphone)    audio + number + call_id            │
+            ▲                                                            ▼
+            │                                               Whisper speech-to-text (transcriber.py)
+            │                                                            │ text
+            │                                        add to this call's transcript so far
+            │                                                            ▼
+ ScamAlertActivity ◄── full-screen notification ◄── JSON verdict ◄── rule-based scoring (textcheck.py)
 ```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the details, including what each file does.
 
 | Folder | What it is |
 |---|---|
-| `backend/` | Flask API + Whisper transcription + scam scoring (`textcheck.py`) |
-| `android/` | Kotlin app: call listener, audio recorder service, alert screen |
-
-### Scoring (`backend/textcheck.py`)
-Each transcript gets a 0–100 risk score: critical regex patterns (+40 each), red-flag phrases (+25), soft
-"yellow" words (+10), safe-call phrases such as "thank you for calling" (−20), and a suspicious caller prefix (+30).
-`≥70` → **SCAM**, `≥40` → **ALERT**, otherwise **SAFE**.
+| `backend/` | Flask API, Whisper transcription and the scam-scoring rules |
+| `android/` | Kotlin app: call listener, recorder service, alert screen |
+| [`docs/`](docs/) | Setup guide, architecture, API, scoring, privacy and security, troubleshooting, deployment |
 
 ## Quick start
 
-### 1. Backend
-Requires Python 3.9+ and [ffmpeg](https://ffmpeg.org/download.html) installed on your system.
+Full step-by-step instructions (including Windows firewall and finding your IP) are in
+**[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**. The short version:
+
+**1. Start the server** (needs Python 3.10+ and [ffmpeg](https://ffmpeg.org/download.html)):
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-pip install -r requirements.txt   # installs flask + openai-whisper (pulls in PyTorch, large download)
-python app.py                     # listens on http://0.0.0.0:5000
+venv\Scripts\activate             # macOS / Linux: source venv/bin/activate
+pip install -r requirements.txt   # downloads PyTorch, so it is large
+python app.py                     # first start also downloads the Whisper model
 ```
 
-Try it without the phone:
+**2. Run the app.** Open the `android/` folder in Android Studio. On a real phone, add your computer's address
+to `android/local.properties` (this file is git-ignored) and press **Sync Now**:
 
-```bash
-curl -F "test=@samples/test_scam.mpeg" http://localhost:5000/
+```
+backend.url=http://<your-computer-LAN-IP>:5000/
 ```
 
-Config via environment variables: `WHISPER_MODEL` (default `small`), `HOST`, `PORT`, `FLASK_DEBUG=1`. Uploads over 25 MB are rejected.
+The emulator works without this line (it reaches your computer at `10.0.2.2`). Run the app, grant the
+permissions and tap **Run Quick Test**. If the pipeline works, the red scam screen opens.
 
-### 2. Android app
-1. Open `android/` in Android Studio.
-2. Tell the app where your server is by adding a line to `android/local.properties` (this file is git-ignored):
-   ```
-   backend.url=http://<your-computer-LAN-IP>:5000/
-   ```
-   Phone and computer must be on the same Wi-Fi. (Default is `http://10.0.2.2:5000/`, which reaches your
-   computer from the Android emulator.)
-3. Run the app, grant all permissions, and tap **Test Scam Detection** to check the full pipeline.
+## Documentation
 
-## Tests
-
-```bash
-cd backend
-python -m unittest discover -s tests -v
-```
+| Document | Contents |
+|---|---|
+| [Getting started](docs/GETTING_STARTED.md) | Step-by-step setup, configuration and tests |
+| [Architecture](docs/ARCHITECTURE.md) | Components, call lifecycle, chunking, threading, notifications |
+| [API reference](docs/API.md) | Endpoints, fields, responses and errors |
+| [Scoring](docs/SCORING.md) | How the 0–100 risk score works, with real examples |
+| [Privacy & security](docs/PRIVACY_AND_SECURITY.md) | What data goes where, app permissions, security gaps and legal notes |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Fixes for the problems you are most likely to hit |
+| [Deployment](docs/DEPLOYMENT.md) | Building an APK, sharing it, hosting the server, and why it is not on Google Play |
 
 ## Limitations
 
-- **Not truly "live" yet:** it records one 10-second clip per call, then analyses it.
-- **Call audio:** modern Android versions block apps from recording the *other* side of a call; the app only
-  hears the phone's microphone (works best on speakerphone).
-- **Rule-based detection:** keyword/regex scoring can miss scams (see the expected-failure test) and flag
-  innocent calls. Whisper runs in *translate* mode, so Hinglish patterns only match if the translation keeps them.
-- **No authentication / HTTPS:** the server accepts audio from anyone on the network and the app uses plain HTTP.
-  Run it only on a trusted network.
-- **"END CALL NOW" on the alert screen currently only closes the warning**; it does not hang up the call.
+- **It may only hear your side of the call.** Modern Android restricts capturing call audio, so the app
+  records from the phone's microphone. This works best on speakerphone, and on some phones the microphone is
+  silent during a call.
+- **Android restricts background recording.** Starting a microphone service while the app is in the background
+  is blocked on newer Android versions unless an exemption applies. If that happens the app shows a
+  "could not monitor this call" notification instead of failing silently. See
+  [Troubleshooting](docs/TROUBLESHOOTING.md).
+- **Rule-based detection misses things.** Scams that avoid the listed words get through, and unusual honest
+  calls can raise an alert. For example, the sentence *"your parcel is held at customs, you are under digital
+  arrest, stay on the video call"* currently scores 0.
+- **No authentication or HTTPS.** The server accepts audio from anyone on the network and the app uses plain
+  HTTP. Run it only on a network you trust.
+- **The alert buttons cannot hang up the call.** They only close the warning.
+- **It is not suitable for Google Play as built.** Play restricts the call-log permission and call-recording
+  apps. You can share a signed APK directly instead, see [Deployment](docs/DEPLOYMENT.md).
+
+## Future work
+
+Ideas, roughly in order of value:
+
+1. **Detect more scams.** Add rules for scripts the detector misses today, such as "digital arrest" calls and
+   paraphrases like "tell me the six digit code", and measure accuracy on a list of real example sentences.
+2. **Add a second detection layer** (a small classifier or a language model) for borderline `ALERT` calls.
+3. **Make it faster and safer to run.** Faster or smaller Whisper models, streaming audio, authentication, HTTPS,
+   and a server-address setting inside the app.
+4. **Help the user act.** Show the reason and score on the alert screen, add a real hang-up button, keep a call
+   history and a personal block-list, and add a report shortcut. In India, the DoT's Chakshu facility on the
+   Sanchar Saathi portal takes reports of suspected fraud calls, and the national cyber-crime helpline is 1930.
+   Check the current process before building.
+5. **Engineering.** Android unit tests, a CI job that builds the app, and screenshots in this README.
 
 ## Privacy & legal
 
-This app records phone calls and uploads the audio to your server. Laws on recording calls differ by country —
-some require **all parties' consent**. Use it only where it is legal, only on your own device, and never
-commit real call recordings to this repo. The server deletes each upload right after transcription.
+This app records phone calls and uploads the audio to a server **you** run. Laws on recording calls differ by
+country, and some require **all parties' consent**. Use it only where it is legal and only on your own device,
+and never commit real call recordings to this repository. Details are in [docs/PRIVACY_AND_SECURITY.md](docs/PRIVACY_AND_SECURITY.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-=======
-
+MIT, see [LICENSE](LICENSE).
